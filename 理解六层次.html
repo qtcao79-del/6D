@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>理解六层次 · 飞昂叩启教练学院</title>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<style>
+:root{
+  --bg:#faf8f4; --card:#ffffff; --ink:#2d2a26; --muted:#8a8378; --line:#e6e1d8;
+  --a:#c96f4a; --a-dark:#b85c3a; --a-light:#e8a87c; --a-bg:#fdf3ee;
+  --b:#3f9d63; --b-dark:#2f7d4c; --b-light:#7bc496; --b-bg:#eef7f1;
+  --shadow-sm:0 1px 2px rgba(60,50,30,.04), 0 2px 8px rgba(60,50,30,.06);
+  --shadow-md:0 4px 16px rgba(60,50,30,.08), 0 1px 3px rgba(60,50,30,.04);
+  --shadow-lg:0 8px 30px rgba(60,50,30,.12), 0 2px 6px rgba(60,50,30,.06);
+  --radius:14px; --radius-lg:20px; --radius-xl:24px;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;overflow-x:hidden !important;}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  line-height:1.6; font-size:15px; -webkit-font-smoothing:antialiased;
+  touch-action:pan-y; overscroll-behavior-x:none;
+}
+@keyframes fadeUp{ from{opacity:0; transform:translateY(12px);} to{opacity:1; transform:translateY(0);} }
+@keyframes fadeIn{ from{opacity:0;} to{opacity:1;} }
+@keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:.45;} }
+.topbar{position:sticky; top:0; z-index:50; background:rgba(250,248,244,.88); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); border-bottom:1px solid rgba(230,225,216,.8);}
+.topbar-inner{max-width:1080px; margin:0 auto; padding:10px 16px; display:flex; align-items:center; gap:10px;}
+.brand{font-size:18px; font-weight:700; letter-spacing:.5px; flex:none; display:flex; align-items:center; gap:8px;}
+.brand-logo{height:30px; width:auto; display:block;}
+.brand-by{font-size:12px; font-weight:400; color:var(--muted); letter-spacing:0; white-space:nowrap;}
+.topbar-right{margin-left:auto; display:flex; align-items:center; gap:8px;}
+main{max-width:720px; margin:0 auto; padding:20px 16px 28px; animation:fadeUp .35s ease;}
+.card{background:var(--card); border:1px solid rgba(230,225,216,.7); border-radius:var(--radius-lg); padding:18px 20px; box-shadow:var(--shadow-sm); transition:box-shadow .25s ease;}
+.card:hover{box-shadow:var(--shadow-md);}
+.stack>.card{margin-bottom:14px;}
+h2{font-size:18px; margin:0 0 6px; font-weight:700; letter-spacing:-.2px;}
+h3{font-size:15px; margin:0 0 10px; font-weight:600;}
+.page-title{margin:0 0 4px; font-size:22px; letter-spacing:-.3px;}
+.hint{font-size:13px; color:var(--muted); margin:4px 0 12px; line-height:1.5;}
+.muted{color:var(--muted); font-weight:400; font-size:13px;}
+.btn{min-height:44px; border-radius:12px; padding:10px 18px; font-size:14px; cursor:pointer; border:1px solid var(--line); background:#fff; color:var(--ink); font-family:inherit; font-weight:500; transition:all .2s ease;}
+.btn:active{transform:scale(.96);}
+.btn:disabled{opacity:.4; cursor:default;}
+.btn:hover:not(:disabled){box-shadow:var(--shadow-md);}
+.btn.primary{background:linear-gradient(135deg,var(--a-light),var(--a)); border-color:transparent; color:#fff; box-shadow:0 2px 8px rgba(201,111,74,.3); font-weight:600;}
+.btn.primary:hover:not(:disabled){box-shadow:0 4px 14px rgba(201,111,74,.4);}
+.btn.green{background:linear-gradient(135deg,var(--b-light),var(--b)); border-color:transparent; color:#fff; box-shadow:0 2px 8px rgba(63,157,99,.3); font-weight:600;}
+.btn.danger{color:#b4443c; border-color:#e6c6c2;}
+.btn.danger:hover{background:#fdf6f5;}
+.btn.mini{font-size:12.5px; min-height:36px; padding:6px 12px; border-radius:10px;}
+.icon-btn{width:44px; height:44px; flex:none; border-radius:12px; border:1px solid var(--line); background:#faf8f3; font-size:17px; cursor:pointer; color:var(--ink); display:inline-flex; align-items:center; justify-content:center; font-family:inherit; transition:all .2s ease;}
+.icon-btn:hover{background:#f0ede6;}
+.field{margin-bottom:14px;}
+.field>label{display:block; font-size:13px; font-weight:600; margin-bottom:6px;}
+textarea,.text-input{width:100%; min-height:56px; border:1px solid var(--line); border-radius:var(--radius); padding:10px 12px; font:inherit; font-size:14px; resize:vertical; background:#fffdf9; transition:border-color .2s ease, box-shadow .2s ease;}
+.text-input{min-height:44px; resize:none;}
+textarea:focus,.text-input:focus{outline:none; border-color:var(--a); box-shadow:0 0 0 3px rgba(201,111,74,.12);}
+textarea:disabled{background:#f4f1ea; color:var(--muted);}
+.row-btns{display:flex; gap:10px; justify-content:space-between; flex-wrap:wrap;}
+/* 话题页 */
+.topic-chip{display:inline-block; border:1px solid var(--line); background:#fff; border-radius:999px; padding:8px 14px; font-size:13px; color:#5d5442; cursor:pointer; margin:0 8px 8px 0; transition:all .2s ease; user-select:none; -webkit-user-select:none;}
+.topic-chip:hover{border-color:var(--a-light); background:var(--a-bg);}
+.topic-chip:active{transform:scale(.96);}
+/* 进度 */
+.prog-top{display:flex; justify-content:space-between; align-items:center; font-size:13px; color:var(--muted); margin-bottom:8px; font-variant-numeric:tabular-nums;}
+.pbar{height:8px; background:#efece4; border-radius:999px; overflow:hidden; margin:0 0 16px;}
+.pbar>i{display:block; height:100%; border-radius:999px; transition:width .3s ease;}
+/* 层次头 */
+.level-head{display:flex; align-items:flex-start; gap:12px; margin-bottom:6px;}
+.level-dot{width:16px; height:16px; border-radius:5px; flex:none; margin-top:5px; box-shadow:var(--shadow-sm);}
+.level-name{font-size:19px; font-weight:700; line-height:1.3;}
+.level-tagline{font-size:12px; color:var(--muted); font-weight:400;}
+.level-desc{font-size:13.5px; color:#5d5442; margin:0 0 14px; padding:10px 14px; border-radius:var(--radius); background:#faf8f3; border:1px dashed var(--line);}
+/* 问题 */
+.q-item{background:#fffdf9; border:1px solid var(--line); border-radius:var(--radius); padding:12px 14px; margin-bottom:12px;}
+.q-text{font-weight:600; font-size:14.5px; margin-bottom:8px; display:flex; gap:8px;}
+.q-hint{font-size:12.5px; color:var(--muted); font-style:italic; margin-top:6px;}
+/* 引导页 · 一封信 */
+@keyframes letterOpen{ from{opacity:0; transform:perspective(900px) rotateX(-10deg) translateY(16px) scale(.98);} to{opacity:1; transform:perspective(900px) rotateX(0) translateY(0) scale(1);} }
+.letter-card{
+  background:linear-gradient(160deg,#fdfaf2,#f9f2e2);
+  border:1px solid #eee2c8; border-radius:var(--radius-xl);
+  box-shadow:0 1px 2px rgba(120,95,50,.05), 0 10px 34px rgba(120,95,50,.13);
+  padding:30px 26px 24px; position:relative; overflow:hidden;
+  animation:letterOpen .7s cubic-bezier(.22,.8,.32,1) both; transform-origin:top center;
+}
+.letter-card::before{content:''; position:absolute; inset:0; pointer-events:none;
+  background:radial-gradient(1200px 300px at 50% -120px, rgba(201,111,74,.08), transparent 60%);}
+.letter-title{font-family:"Songti SC","STSong","SimSun",serif; font-size:24px; font-weight:700; letter-spacing:2px; margin:0 0 4px; color:#4a3b28;}
+.letter-sub{font-size:12.5px; color:var(--muted); letter-spacing:1px; margin-bottom:18px;}
+.letter-body p{font-size:14.5px; line-height:1.9; color:#4a4032; margin:0 0 14px;}
+.letter-body p b{color:var(--a-dark);}
+.letter-sign{text-align:right; font-family:"Songti SC","STSong","SimSun",serif; font-size:15px; color:#6b5a3e; margin:18px 0 20px; letter-spacing:1px;}
+.letter-resume{display:block; text-align:center; margin-top:12px; font-size:13px; color:var(--a); cursor:pointer; text-decoration:underline;}
+/* 金字塔 */
+.pyramid-wrap{margin:4px 0 18px;}
+.pyramid-wrap svg{display:block; width:100%; max-width:460px; margin:0 auto;}
+.pyramid-legend{display:flex; justify-content:center; gap:14px; font-size:12px; color:var(--muted); margin-top:6px; flex-wrap:wrap;}
+.pyramid-legend i{display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:4px; vertical-align:-1px;}
+.levels-img{display:block; width:100%; max-width:400px; margin:0 auto 12px; border-radius:var(--radius-lg); box-shadow:var(--shadow-md);}
+/* 问答回顾折叠 */
+.qa-fold{border:1px solid var(--line); border-radius:var(--radius); background:#fffdf9; padding:4px 14px 12px; margin-bottom:16px;}
+.qa-fold summary{cursor:pointer; font-weight:600; font-size:14px; min-height:44px; display:flex; align-items:center; user-select:none; -webkit-user-select:none;}
+.qa-fold textarea{margin-top:4px;}
+.q-num{flex:none; width:22px; height:22px; border-radius:50%; color:#fff; font-size:12px; display:inline-flex; align-items:center; justify-content:center; margin-top:2px;}
+.skip-row{display:flex; align-items:center; gap:8px; margin:2px 0 14px; font-size:13.5px; color:var(--muted); cursor:pointer; user-select:none; -webkit-user-select:none; min-height:36px;}
+.skip-row input{width:20px; height:20px; accent-color:var(--a); flex:none;}
+.q-tools{display:flex; justify-content:flex-end; margin-bottom:14px;}
+.step-nav{display:flex; align-items:center; justify-content:space-between; gap:10px; margin:18px 0 0;}
+.step-nav .btn{min-height:50px; min-width:120px; font-weight:600;}
+/* 弹窗 / 加载 */
+.modal-mask{position:fixed; inset:0; background:rgba(45,42,38,.45); z-index:80; display:none; align-items:center; justify-content:center; padding:20px;}
+.modal-mask.show{display:flex; animation:fadeIn .2s ease;}
+.modal{max-width:420px; width:100%; animation:fadeUp .3s ease; max-height:86vh; overflow-y:auto;}
+.loading-mask{position:fixed; inset:0; background:rgba(250,248,244,.72); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); z-index:90; display:none; align-items:center; justify-content:center; padding:20px;}
+.loading-mask.show{display:flex; animation:fadeIn .2s ease;}
+.loading-box{text-align:center; padding:28px 36px;}
+.dots{display:flex; gap:8px; justify-content:center; margin-bottom:12px;}
+.dots i{width:10px; height:10px; border-radius:50%; background:var(--a); animation:pulse 1.1s infinite;}
+.dots i:nth-child(2){animation-delay:.2s;} .dots i:nth-child(3){animation-delay:.4s;}
+.error-card{border:1px solid #e6c6c2; background:#fdf6f5; color:#b4443c; border-radius:var(--radius); padding:12px 14px; font-size:13.5px; margin-bottom:14px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+.error-card span{flex:1; min-width:180px;}
+/* 报告 */
+.rep-block{margin-bottom:16px;}
+.rep-label{font-size:13px; font-weight:700; color:var(--muted); margin-bottom:6px;}
+.rep-text{font-size:14.5px; line-height:1.75; white-space:pre-wrap;}
+.bottle-card{background:var(--a-bg); border:1px solid #f0d9cc; border-radius:var(--radius); padding:12px 16px;}
+.bottle-card .bottle-level{font-weight:700; color:var(--a-dark); font-size:15px;}
+.bottle-card .bottle-reason{font-size:13.5px; margin-top:4px; color:#3d382e;}
+.insight-item{border-left:3px solid var(--line); padding:2px 0 2px 12px; margin-bottom:12px;}
+.insight-item .insight-name{font-weight:700; font-size:14px;}
+.insight-item .insight-text{font-size:13.5px; color:#3d382e; margin-top:2px;}
+.sg-list{margin:0; padding-left:20px;}
+.sg-list li{margin-bottom:6px; font-size:14px;}
+.conflict-item{margin-bottom:10px;}
+.conflict-item .conflict-title{font-weight:700; font-size:14px;}
+.conflict-item .conflict-detail{font-size:13.5px; color:#3d382e;}
+.bw-card{background:var(--b-bg); border:1px solid #cfe3d5; border-radius:var(--radius); padding:12px 16px; font-size:13.5px;}
+.qa-item{border:1px solid var(--line); border-radius:var(--radius); padding:10px 14px; margin-bottom:10px; background:#fffdf9;}
+.qa-q{font-weight:600; font-size:13.5px; margin-bottom:4px; color:#5d5442;}
+.qa-a{font-size:13.5px; color:#3d382e; white-space:pre-wrap;}
+.qa-a.empty{color:#b0a99c;}
+.level-chip{display:inline-block; font-size:12px; font-weight:700; color:#fff; border-radius:999px; padding:3px 12px; margin-bottom:8px;}
+.report-actions{display:flex; gap:10px; flex-wrap:wrap; margin-top:16px;}
+.report-actions .btn{flex:1 1 0; min-width:110px; white-space:nowrap; padding-left:10px; padding-right:10px;}
+.autosave-note{font-size:12px; color:var(--muted); text-align:right; margin-top:6px;}
+select.text-input{appearance:auto; -webkit-appearance:menulist; background:#fffdf9;}
+.cfg-note{font-size:12px; color:var(--muted); margin-top:4px; line-height:1.4;}
+.cfg-note.free{color:var(--b-dark); font-weight:600;}
+.test-result{font-size:12.5px; align-self:center; word-break:break-all;}
+.test-result.ok{color:var(--b-dark); font-weight:600;}
+.test-result.err{color:#b4443c;}
+.text-input[readonly]{background:#f4f1ea; color:var(--muted);}
+#toast{position:fixed; left:50%; bottom:28px; transform:translateX(-50%) translateY(10px); background:rgba(45,42,38,.94); color:#fff; font-size:13.5px; padding:10px 18px; border-radius:999px; opacity:0; pointer-events:none; transition:opacity .25s ease, transform .25s ease; z-index:99; max-width:86vw; text-align:center; box-shadow:var(--shadow-lg);}
+#toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+.brand-footer{margin-top:16px; display:flex; align-items:center; justify-content:center; gap:18px; padding:14px 18px; background:linear-gradient(135deg,#ffffff,#fbf7ee); border-radius:var(--radius); box-shadow:var(--shadow-sm);}
+.bf-logo{height:56px; width:auto; display:block;}
+.bf-mid{text-align:left;}
+.bf-text{margin:0 0 4px; font-size:13px;}
+.bf-text b{font-weight:700;}
+.bf-text.small{font-size:11.5px; color:var(--muted); margin:0 0 2px;}
+.bf-link{color:var(--a); font-weight:700; text-decoration:underline; font-size:13px;}
+.bf-link:hover{color:var(--a-dark);}
+.bf-qrs{display:flex; align-items:center; gap:14px; flex:none;}
+.bf-qr{text-align:center; font-size:11px; color:var(--muted); flex:none;}
+.bf-qr img{width:64px; height:64px; border-radius:6px; border:1px solid var(--line); display:block; margin:0 auto 3px;}
+@media (max-width:760px){
+  .brand{font-size:16px;}
+  .brand-logo{height:26px;}
+  .brand-by{font-size:11px;}
+  .topbar-inner{gap:8px; padding:8px 12px;}
+  main{padding:14px 12px 24px;}
+  .card{padding:16px;}
+  .page-title{font-size:20px;}
+  .step-nav .btn{min-width:0; flex:1 1 0;}
+  .brand-footer{flex-direction:column; text-align:center; gap:10px; padding:12px 14px;}
+  .bf-mid{text-align:center;}
+  .bf-qrs{gap:10px;}
+  .bf-qr img{width:56px; height:56px;}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><img class="brand-logo" src="公司Logo.PNG" alt="飞昂叩启教练学院">理解六层次 <span class="brand-by">飞昂叩启教练学院</span></div>
+    <div class="topbar-right">
+      <button class="icon-btn" id="btnSettings" title="API 设置">⚙</button>
+    </div>
+  </div>
+</header>
+<main id="app"></main>
+<footer class="brand-footer card" style="max-width:720px; margin:16px auto 22px; width:calc(100% - 32px);">
+  <img class="bf-logo" src="公司Logo.PNG" alt="飞昂叩启教练学院">
+  <div class="bf-mid">
+    <p class="bf-text">本工具由 <b>飞昂叩启教练学院</b> 开发 · 免费开放</p>
+    <p class="bf-text small">理解六层次（NLP 逻辑层次）教练工具 · 访问网站了解更多资讯</p>
+    <a class="bf-link" href="https://3mcoach.cn" target="_blank" rel="noopener">3mcoach.cn</a>
+  </div>
+  <div class="bf-qrs">
+    <div class="bf-qr">
+      <img src="视频号.jpg" alt="视频号二维码">
+      <span>视频号</span>
+    </div>
+    <div class="bf-qr">
+      <img src="8d-网站二维码-高清.png" alt="网站二维码">
+      <span>网站</span>
+    </div>
+  </div>
+</footer>
+
+<!-- 设置弹窗 -->
+<div class="modal-mask" id="settingsMask">
+  <div class="modal card">
+    <h3>API 设置</h3>
+    <p class="hint">本工具调用大模型 API 生成定制化提问与洞察报告。Key 仅保存在你的浏览器本地，不会上传到任何服务器。</p>
+    <p class="hint" id="cfgCurrent" style="margin-top:-6px;"></p>
+    <div class="field">
+      <label>服务商</label>
+      <select id="cfgProvider" class="text-input">
+        <option value="zhipu">智谱 BigModel（GLM-4-Flash 免费）</option>
+        <option value="kimi">Kimi（Moonshot）</option>
+        <option value="custom">自定义（OpenAI 兼容）</option>
+      </select>
+      <div class="cfg-note" id="cfgProviderNote"></div>
+    </div>
+    <div class="field">
+      <label>API Key</label>
+      <input type="password" id="cfgKey" class="text-input" placeholder="sk-..." autocomplete="off">
+    </div>
+    <div class="field">
+      <label>Endpoint</label>
+      <input type="text" id="cfgEndpoint" class="text-input" placeholder="https://..." autocomplete="off">
+    </div>
+    <div class="field">
+      <label>模型</label>
+      <input type="text" id="cfgModel" class="text-input" placeholder="glm-4-flash" autocomplete="off">
+    </div>
+    <div class="row-btns" style="justify-content:flex-start; margin-bottom:12px;">
+      <button class="btn mini" id="cfgTest">测试连接</button>
+      <span class="test-result" id="cfgTestResult"></span>
+    </div>
+    <div class="row-btns">
+      <button class="btn" id="cfgCancel">取消</button>
+      <button class="btn primary" id="cfgSave">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- 加载遮罩 -->
+<div class="loading-mask" id="loadingMask">
+  <div class="loading-box card">
+    <div class="dots"><i></i><i></i><i></i></div>
+    <div id="loadingText">教练生成中…</div>
+  </div>
+</div>
+<script>
+'use strict';
+/* ================= 常量与工具 ================= */
+const FONT='-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif';
+const LS_STATE='nlp6d-state-v1';
+const LS_CONFIG='nlp6d-config-v1';
+/* 服务商预设：智谱 GLM-4-Flash 官方免费，默认选中，适合免费开放给访客 */
+const PROVIDERS={
+  zhipu:{name:'智谱 BigModel（GLM-4-Flash 免费）', endpoint:'https://open.bigmodel.cn/api/paas/v4/chat/completions', model:'glm-4-flash', note:'官方免费模型，适合免费开放给访客。到 open.bigmodel.cn 注册即可免费获取 API Key。', free:true},
+  kimi:{name:'Kimi（Moonshot）', endpoint:'https://api.moonshot.cn/v1/chat/completions', model:'moonshot-v1-8k', note:'到 platform.moonshot.cn 获取 API Key（按量计费）。默认模型 moonshot-v1-8k 所有账户可用；若你的账户已开通 K2，可手动改为 kimi-k2-0905-preview。', free:false},
+  custom:{name:'自定义（OpenAI 兼容）', endpoint:'', model:'', note:'填写任何 OpenAI 兼容接口的 endpoint 与模型名。', free:false}
+};
+const DEFAULT_PROVIDER='zhipu';
+/* 六层次数据：名称、说明、颜色（橙→绿渐变，页面与 canvas 导出共用） */
+const LEVELS=[
+  {key:'environment', name:'环境',   desc:'你身边的情况：时间、场合、人。', tag:'时间·场合·人', color:'#c96f4a'},
+  {key:'behavior',    name:'行为',   desc:'你实际做了什么、没做什么。',   tag:'做了什么',     color:'#ad794f'},
+  {key:'capability',  name:'能力',   desc:'你会什么、缺什么、谁能帮你。',   tag:'会什么·缺什么', color:'#928254'},
+  {key:'belief',      name:'信念/价值观', desc:'你为什么在乎、什么对你最重要。', tag:'最看重什么', color:'#768b59'},
+  {key:'identity',    name:'身份',   desc:'你想成为怎样的人。',     tag:'想成为谁',   color:'#5b945e'},
+  {key:'spirit',      name:'精神/愿景',  desc:'这件事更大的意义、为了谁。',   tag:'更大的意义', color:'#3f9d63'}
+];
+/* 层次状态色板（金字塔用）：clear 清晰 / hazy 模糊 / stuck 卡住 */
+const STATUS_COLORS={
+  clear:{fill:'#3f9d63', text:'#ffffff', label:'清晰'},
+  hazy:{fill:'#e3b75f', text:'#5d4a12', label:'有些模糊'},
+  stuck:{fill:'#d1603f', text:'#ffffff', label:'卡住了'}
+};
+/* 各层次的大白话提问指引（供 AI prompt 使用，内部 key 不变） */
+const LEVEL_GUIDES={
+  environment:'围绕"什么时候、什么场合、身边有谁"问。示例："这件事通常在什么情况下出现？当时你身边都有谁？"',
+  behavior:'围绕"实际做了什么、没做什么"问。示例："遇到这种情况时，你第一反应通常是做什么？"',
+  capability:'围绕"会什么、缺什么、谁能帮你"问。示例："要处理好这件事，你觉得自己擅长什么、又缺什么本事？"',
+  belief:'围绕"为什么在乎、什么最重要"问，禁止出现"信念""价值观"字样。示例："在这件事里，你最看重、最不愿意妥协的是什么？"',
+  identity:'围绕"想成为怎样的人"问，禁止出现"身份"字样。示例："如果这件事圆满解决了，你希望自己变成一个什么样的人？"',
+  spirit:'围绕"更大的意义、为了谁"问，禁止出现"精神""使命"字样。示例："这件事做成了，对你身边重要的人意味着什么？"'
+};
+const EXAMPLE_TOPICS=[
+  '工作提不起劲，想找到方向',
+  '和伴侣经常因为小事吵架',
+  '想学新技能但总是坚持不下来',
+  '要不要跳槽换行业，很纠结',
+  '孩子上初中后亲子沟通越来越困难'
+];
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad2=n=>String(n).padStart(2,'0');
+function fmtDate(ts){ const d=new Date(ts); return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate()); }
+function fmtStamp(ts){ const d=new Date(ts); return d.getFullYear()+pad2(d.getMonth()+1)+pad2(d.getDate())+'-'+pad2(d.getHours())+pad2(d.getMinutes()); }
+let toastT=null;
+function toast(msg){
+  let el=document.getElementById('toast');
+  if(!el){ el=document.createElement('div'); el.id='toast'; document.body.appendChild(el); }
+  el.textContent=msg; el.classList.add('show');
+  clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove('show'),2400);
+}
+function showLoading(text){ document.getElementById('loadingText').textContent=text||'教练生成中…'; document.getElementById('loadingMask').classList.add('show'); }
+function hideLoading(){ document.getElementById('loadingMask').classList.remove('show'); }
+
+/* ================= 状态与配置 ================= */
+function defaultState(){
+  const questions={}, answers={}, skipped={};
+  LEVELS.forEach(l=>{ questions[l.key]=null; answers[l.key]=[]; skipped[l.key]=false; });
+  return { view:'letter', layer:0, name:'', topic:'', questions, answers, skipped, report:null, reportTime:null };
+}
+let state=defaultState();
+/* 问题统一为 {q, hint} 结构；兼容老数据里的纯字符串问题 */
+function normQ(q){
+  if(q && typeof q==='object') return {q:String(q.q||q.question||'').trim(), hint:String(q.hint||'').trim()};
+  return {q:String(q||'').trim(), hint:''};
+}
+function loadState(){
+  try{
+    const s=JSON.parse(localStorage.getItem(LS_STATE));
+    if(s && typeof s==='object' && s.questions){
+      const d=defaultState();
+      state=Object.assign(d, s);
+      LEVELS.forEach(l=>{
+        if(Array.isArray(state.questions[l.key])) state.questions[l.key]=state.questions[l.key].map(normQ);
+        else state.questions[l.key]=null;
+        if(!Array.isArray(state.answers[l.key])) state.answers[l.key]=[];
+        if(typeof state.skipped[l.key]!=='boolean') state.skipped[l.key]=false;
+      });
+      state.name=String(state.name||'');
+    }
+  }catch(e){}
+}
+function save(){ try{ localStorage.setItem(LS_STATE, JSON.stringify(state)); }catch(e){} }
+function getConfig(){
+  let c={};
+  try{ c=JSON.parse(localStorage.getItem(LS_CONFIG))||{}; }catch(e){}
+  /* 迁移：老用户只有 apiKey/model（Kimi 时代），沿用 kimi；新用户默认智谱免费 */
+  let provider=c.provider;
+  if(!PROVIDERS[provider]) provider=c.apiKey?'kimi':DEFAULT_PROVIDER;
+  const preset=PROVIDERS[provider];
+  return {
+    provider,
+    apiKey:c.apiKey||'',
+    endpoint:provider==='custom' ? (c.endpoint||'') : preset.endpoint,
+    model:(c.model||preset.model||'')
+  };
+}
+function saveConfig(provider, apiKey, endpoint, model){
+  if(!PROVIDERS[provider]) provider=DEFAULT_PROVIDER;
+  try{ localStorage.setItem(LS_CONFIG, JSON.stringify({provider, apiKey:apiKey||'', endpoint:endpoint||'', model:model||''})); }catch(e){}
+}
+
+/* ================= AI 接口 ================= */
+/* 把 HTTP 错误响应转成可读文案：状态码 + error.message，解析不出就给原始文本前 200 字 */
+async function explainHttpError(resp){
+  let msg='请求失败（HTTP '+resp.status+'）';
+  if(resp.status===401) msg='API Key 无效或已过期（HTTP 401），请检查是否填错';
+  else if(resp.status===429) msg='请求过于频繁（HTTP 429），请稍等片刻再试';
+  let body='';
+  try{ body=await resp.text(); }catch(e){}
+  if(body){
+    let detail='';
+    try{
+      const j=JSON.parse(body);
+      detail=(j && j.error && (j.error.message||j.error.code)) || j.message || '';
+    }catch(e){}
+    if(!detail) detail=body.slice(0,200);
+    if(detail) msg+='：'+detail;
+  }
+  return msg;
+}
+function explainFetchError(e){
+  const raw=(e && e.message)?e.message:String(e);
+  return '网络/跨域错误（'+raw+'）：请检查网络连接，以及 endpoint 是否填写正确、该服务是否允许浏览器跨域调用';
+}
+async function callAI(messages, temperature, overrides){
+  const cfg=Object.assign(getConfig(), overrides||{});
+  if(!cfg.apiKey){
+    openSettings();
+    throw new Error('请先在右上角「设置」中填入你的 API Key');
+  }
+  if(!cfg.endpoint){
+    openSettings();
+    throw new Error('请先在右上角「设置」中填写 endpoint');
+  }
+  let resp;
+  try{
+    resp=await fetch(cfg.endpoint,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+cfg.apiKey},
+      body:JSON.stringify({model:cfg.model, messages, temperature:temperature==null?0.7:temperature})
+    });
+  }catch(e){
+    throw new Error(explainFetchError(e));
+  }
+  if(!resp.ok) throw new Error(await explainHttpError(resp));
+  const j=await resp.json();
+  const text=j && j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content;
+  if(!text) throw new Error('教练返回内容为空，请重试');
+  return text;
+}
+/* 设置面板「测试连接」：最小请求验证 Key / endpoint / 模型名 */
+async function testConnection(cfg){
+  if(!cfg.apiKey) throw new Error('请先填写 API Key');
+  if(!cfg.endpoint) throw new Error('请先填写 endpoint');
+  let resp;
+  try{
+    resp=await fetch(cfg.endpoint,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+cfg.apiKey},
+      body:JSON.stringify({model:cfg.model, messages:[{role:'user',content:'回复：ok'}], max_tokens:10})
+    });
+  }catch(e){
+    throw new Error(explainFetchError(e));
+  }
+  if(!resp.ok) throw new Error(await explainHttpError(resp));
+  const j=await resp.json();
+  const text=j && j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content;
+  if(!text) throw new Error('连接成功但返回内容为空，请检查模型名是否填错');
+  return text;
+}
+function parseAIJSON(text){
+  try{ return JSON.parse(text); }catch(e){}
+  const m=String(text).match(/\{[\s\S]*\}/);
+  if(m){ try{ return JSON.parse(m[0]); }catch(e){} }
+  throw new Error('教练返回格式异常，解析失败');
+}
+function validQuestions(obj, keys){
+  if(!obj || typeof obj!=='object') return null;
+  const out={};
+  for(const k of keys){
+    const arr=obj[k];
+    if(!Array.isArray(arr) || !arr.length) return null;
+    const qs=arr.map(normQ).filter(x=>x.q);
+    if(!qs.length) return null;
+    out[k]=qs.slice(0,3);
+  }
+  return out;
+}
+
+/* ================= AI 生成：问题 ================= */
+function questionRules(){
+  return '提问要求：\n'+
+  '1. 每个问题都要用「'+state.name+'」称呼对方（放在开头或自然嵌入，如"'+state.name+'，这件事通常发生在什么时候？"），语气像朋友聊天一样温和口语化；\n'+
+  '2. 必须是没有任何专业术语的日常问话，禁止出现「信念、价值观、身份、精神、使命」这类术语字样；\n'+
+  '3. 紧扣话题：先把话题里的具体细节（人、事、场景）内化，每个问题都必须引用这些细节，禁止放之四海皆准、对任何话题都适用的通用问题；\n'+
+  '4. 每个问题附一个 30 字以内、口语化的示例回答（hint 字段），给对方启发。';
+}
+async function genAllQuestions(){
+  if(!state.name.trim()){ toast('先告诉我怎么称呼你吧'); return; }
+  if(!state.topic.trim()){ toast('请先输入一个话题'); return; }
+  if(!getConfig().apiKey){ toast('请先配置 API Key'); openSettings(); return; }
+  showLoading('教练正在根据你的话题生成六个层次的提问…');
+  try{
+    const sys='你是一位亲切的人生教练，用大白话和朋友聊天一样的方式提问，从不使用专业术语。';
+    const guide=LEVELS.map(l=>'- '+l.key+'：'+LEVEL_GUIDES[l.key]).join('\n');
+    const usr=state.name+' 想探索的话题是：「'+state.topic.trim()+'」。\n请围绕这个话题，从下面六个角度各设计 2~3 个提问：\n'+guide+'\n'+questionRules()+'\n只返回严格 JSON，不要输出任何其他文字，格式：{"environment":[{"q":"问题","hint":"示例回答"}],"behavior":[...],"capability":[...],"belief":[...],"identity":[...],"spirit":[...]}';
+    const text=await callAI([{role:'system',content:sys},{role:'user',content:usr}], 0.8);
+    const qs=validQuestions(parseAIJSON(text), LEVELS.map(l=>l.key));
+    if(!qs) throw new Error('教练返回格式异常，解析失败');
+    LEVELS.forEach(l=>{ state.questions[l.key]=qs[l.key]; state.answers[l.key]=qs[l.key].map(()=> ''); });
+    state.layer=0; state.view='answer'; state.report=null; state.reportTime=null;
+    save(); render(); window.scrollTo(0,0);
+    toast('提问已生成，开始逐层探索吧');
+  }catch(e){
+    setError(e.message, 'genAllQuestions');
+    render();
+  }finally{ hideLoading(); }
+}
+async function genLevelQuestions(idx){
+  const lv=LEVELS[idx];
+  const hasAnswer=state.answers[lv.key].some(a=>a && a.trim());
+  if(hasAnswer && !confirm('重新生成会清空「'+lv.name+'」层已填写的回答，确定换一批问题吗？')) return;
+  showLoading('教练正在为「'+lv.name+'」层换一批提问…');
+  try{
+    const sys='你是一位亲切的人生教练，用大白话和朋友聊天一样的方式提问，从不使用专业术语。';
+    const usr=state.name+' 想探索的话题是：「'+state.topic.trim()+'」。\n请围绕这个话题，只从下面这一个角度设计 2~3 个全新的提问，要求角度新颖：\n'+LEVEL_GUIDES[lv.key]+'\n'+questionRules()+'\n只返回严格 JSON，不要输出任何其他文字，格式：{"questions":[{"q":"问题","hint":"示例回答"}]}';
+    const text=await callAI([{role:'system',content:sys},{role:'user',content:usr}], 0.9);
+    const obj=parseAIJSON(text);
+    const qs=validQuestions({q:obj.questions}, ['q']);
+    if(!qs) throw new Error('教练返回格式异常，解析失败');
+    state.questions[lv.key]=qs.q;
+    state.answers[lv.key]=qs.q.map(()=> '');
+    save(); render();
+    toast('已换一批「'+lv.name+'」的提问');
+  }catch(e){
+    setError(e.message, 'genLevelQuestions', idx);
+    render();
+  }finally{ hideLoading(); }
+}
+
+/* ================= AI 生成：洞察报告 ================= */
+async function genReport(){
+  const anyContent=LEVELS.some(l=> state.skipped[l.key] || state.answers[l.key].some(a=>a && a.trim()));
+  if(!anyContent){ toast('请至少回答一个层次的问题，或将某层标记为「不确定」'); return; }
+  showLoading('教练正在生成你的洞察报告…（约 10~20 秒）');
+  try{
+    const sys='你是一位资深而亲切的教练，正坐在对方面前轻声说话。你的反馈温暖、具体、有画面感，善用生活化的比喻，从不用学术词。\n'+
+    '你精通「理解六层次」的精髓——六个层次不是并列的清单，而是一个上下驱动的系统：\n'+
+    '· 上三层（精神/愿景、身份、信念/价值观）是内心的动力与方向，它决定下三层；下三层（能力、行为、环境）是上三层的落地和显现。\n'+
+    '· 高层次的改变会自然向下辐射，带动下面各层；低层次的改变却推不动上面。\n'+
+    '· 所以，冰山上看得见的表现（拖延、退缩、发脾气、环境不顺）往往只是症状，根子常常在它的上一层，甚至上三层。比如：行为上"遇到困难就退缩"，背后可能是信念层"我大概做不到"，甚至是身份层"我不是那种能成事的人"。\n'+
+    '· 爱因斯坦说，你无法在制造问题的同一层次上解决它。你看问题从不只看表面那一层，而是顺着表现往上找根子，再告诉对方从哪一层动手最省力。';
+    let qa='';
+    LEVELS.forEach(l=>{
+      qa+='\n【'+l.name+'】\n';
+      if(state.skipped[l.key]){ qa+='（'+state.name+' 标记：本层不确定 / 已跳过）\n'; return; }
+      const qs=state.questions[l.key]||[];
+      qs.forEach((q,i)=>{
+        const a=(state.answers[l.key][i]||'').trim();
+        qa+='问：'+q.q+'\n答：'+(a||'（未作答）')+'\n';
+      });
+    });
+    const usr=state.name+' 想探索的话题（也是 ta 的目标）是：「'+state.topic.trim()+'」。\n以下是 ta 对六个层次提问的回答：'+qa+'\n请你以教练的身份，直接对 '+state.name+' 说一段话并输出结构化反馈。硬性要求：\n'+
+    '1. 全文用「你」称呼对方，不要出现第三人称，也不要反复写对方的名字，通篇像教练在对面轻声对你说；\n'+
+    '2. 用大白话，禁止"匹配/不匹配""对齐/错位"这类学术词，禁止 NLP 术语；\n'+
+    '3. 用「一座六层的楼」的意象贯穿整份反馈：塔顶是精神/愿景，往下依次是身份、信念/价值观、能力、行为，塔底是环境，讲一讲哪一层亮着灯、哪一层有些暗，比如"心里想要的和手上做的，好像不在同一层楼上"；\n'+
+    '4. 一定要有「串起来看」：从 ta 的回答里挑一个最典型的下三层表现（行为/能力/环境上的具体困扰），顺着楼层往上追根子——这个表现的背后，可能是哪条信念在说话、是哪种自我定位在起作用、跟 ta 真正想要的方向是什么关系。语气用"……的背后，可能是……""顺着这个往上走一层，好像能听到……"这样轻轻试探的口吻，不武断、不下诊断；\n'+
+    '5. 「最值得先动的一层」要选根子所在的那一层（往往比症状高一到两层，常在上三层），而不是症状最明显的那一层；建议也要跟根子层次对应：上三层的根子配上三层的动作（澄清真正看重什么、换个说法看自己、把这件事和更大的意义连起来），下三层再配具体的行动；\n'+
+    '6. 只返回严格 JSON，不要输出任何其他文字，格式：\n{\n'+
+    '"empathy":"我听到了你：2~3句复述和认可，如"我听到你在意的是……""我看到你已经做了……"，让对方感到被理解，禁止评判，60~120字",\n'+
+    '"mirror":"一面镜子：用六层楼的意象，从塔顶到塔底描述你看到的现象，150~250字",\n'+
+    '"thread":"串起来看：按第4条要求，把下三层的表现和上三层的根子连成一条线讲给 ta 听，150~250字",\n'+
+    '"bottleneck":{"level":"最值得先动的那一层（按第5条选根子层，从 环境/行为/能力/信念/价值观/身份/精神/愿景 中选一个）","reason":"为什么根子在这一层、动它会怎样带动下面几层，60~120字"},\n'+
+    '"suggestions":["每条以「你可以」开头的建议，具体、温和、可执行，与根子层次对应，3~5条"],\n'+
+    '"goalManagement":"把光带进目标管理：引导对方进入目标管理（平衡轮）、把看清的东西变成落地行动的衔接语，60~120字",\n'+
+    '"levels":[{"key":"spirit","status":"状态","note":"短评"},{"key":"identity",...},{"key":"belief",...},{"key":"capability",...},{"key":"behavior",...},{"key":"environment",...}]，status 只能是 clear（这一层很清晰）/ hazy（有些模糊）/ stuck（卡住了），note 为 10 字以内大白话短评\n}';
+    const text=await callAI([{role:'system',content:sys},{role:'user',content:usr}], 0.7);
+    const rep=parseAIJSON(text);
+    if(!rep || typeof rep!=='object' || !(rep.empathy||rep.summary)) throw new Error('教练返回格式异常，解析失败');
+    state.report=rep; state.reportTime=Date.now(); state.view='report';
+    save(); render(); window.scrollTo(0,0);
+    toast('洞察报告已生成');
+  }catch(e){
+    setError(e.message, 'genReport');
+    render();
+  }finally{ hideLoading(); }
+}
+
+/* ================= 错误卡片 ================= */
+let lastError=null; // {msg, action, arg}
+function setError(msg, action, arg){ lastError={msg:String(msg||'未知错误'), action, arg}; }
+function clearError(){ lastError=null; }
+function errorHTML(){
+  if(!lastError) return '';
+  return '<div class="error-card"><span>⚠ '+esc(lastError.msg)+'</span>'+
+    '<button class="btn danger mini" data-action="retryError">重试</button>'+
+    '<button class="btn mini" data-action="dismissError">知道了</button></div>';
+}
+
+/* ================= 渲染 ================= */
+function render(){
+  const app=document.getElementById('app');
+  if(state.view==='answer' && !state.questions[LEVELS[0].key]) state.view='topic';
+  if(state.view==='report' && !state.report) state.view=state.questions[LEVELS[0].key]?'answer':'topic';
+  if(state.view==='letter') app.innerHTML=letterHTML();
+  else if(state.view==='answer') app.innerHTML=answerHTML();
+  else if(state.view==='report') app.innerHTML=reportHTML();
+  else app.innerHTML=topicHTML();
+}
+/* 欢迎信：首次进入先读信，再点开始探寻 */
+function letterHTML(){
+  const hasProgress=state.questions[LEVELS[0].key]!=null || state.report;
+  return '<div class="letter-card">'+
+    '<div class="letter-title">一封写给你的信</div>'+
+    '<div class="letter-sub">理解六层次 · 自我探索工具</div>'+
+    '<div class="letter-body">'+
+      '<p>亲爱的朋友，你好。</p>'+
+      '<p>这是一套叫做<b>「理解六层次」</b>的自我探索工具。它源自一个经典的教练模型：任何一件让你困惑、纠结或停步不前的事，都可以从六个层面去看——<b>环境、行为、能力、信念、身份、愿景</b>。很多时候，问题卡住的地方，并不在问题本身。</p>'+
+      '<p>它能帮你什么：你只需要带来一个真实的话题，教练会围绕它，为每一层定制几个<b>大白话的提问</b>；你一一回答之后，会收到一份只属于你的<b>洞察报告</b>——它像一面镜子，帮你看清自己心里哪一层亮着灯、哪一层还有些暗。</p>'+
+      '<p>怎么进行：很简单，三步——<b>①</b> 留下你的称呼和话题；<b>②</b> 逐层回答提问（不确定的层可以先跳过）；<b>③</b> 生成你的洞察报告。回答会自动保存在你自己的浏览器里，随时可以回来继续。</p>'+
+      '<p>报告的末尾，会衔接我们的<b>「目标管理（平衡轮）」</b>工具，帮你把今天看清的东西，变成接下来实实在在的行动。</p>'+
+    '</div>'+
+    '<div class="letter-sign">—— 飞昂叩启教练学院</div>'+
+    '<button class="btn primary" style="width:100%; min-height:52px; font-size:16px;" data-action="startExplore">开始探寻</button>'+
+    (hasProgress?'<span class="letter-resume" data-action="resumeExplore">继续上次的探索 ›</span>':'')+
+  '</div>';
+}
+function topicHTML(){
+  const hasProgress=state.questions[LEVELS[0].key]!=null;
+  return '<div class="stack">'+
+  '<div class="card">'+
+    '<h2 class="page-title">想探索什么话题？</h2>'+
+    '<p class="hint">「理解六层次」（NLP 逻辑层次）从环境、行为、能力、信念、身份、精神六个层次帮你看清一个问题。输入你正面临的问题、话题或困惑，教练会为每个层次定制提问，陪你逐层深入。</p>'+
+    errorHTML()+
+    '<div class="field"><label>你希望我怎么称呼你？</label>'+
+      '<input type="text" id="nameInput" class="text-input" placeholder="你的名字或昵称" maxlength="20" value="'+esc(state.name)+'"></div>'+
+    '<div class="field"><label>你想探索的话题</label><textarea id="topicInput" rows="3" placeholder="例如：工作提不起劲，想找到方向……">'+esc(state.topic)+'</textarea></div>'+
+    '<div style="margin-bottom:14px;">'+
+      '<div class="rep-label">试试这些话题</div>'+
+      EXAMPLE_TOPICS.map(t=>'<span class="topic-chip" data-action="fillTopic" data-topic="'+esc(t)+'">'+esc(t)+'</span>').join('')+
+    '</div>'+
+    '<button class="btn primary" style="width:100%; min-height:50px;" data-action="genQuestions">✨ 生成六个层次的提问</button>'+
+    (hasProgress?'<button class="btn" style="width:100%; margin-top:10px;" data-action="resumeAnswer">继续上次的回答</button>'+
+      '<span class="letter-resume" data-action="restart">清空上次进度，重新开始</span>':'')+
+    '<p class="hint" style="margin:10px 0 0;">'+esc(currentCfgLine())+'（右上角 ⚙ 设置可修改）。Key 仅保存在你的浏览器本地。</p>'+
+  '</div>'+
+  '<div class="card">'+
+    '<img class="levels-img" src="理解六层次.jpg" alt="理解六层次：精神/愿景、身份、信念/价值观、能力、行为、环境">'+
+    '<p class="hint" style="margin:0;">从最底层的环境，到最顶层的精神/愿景——教练会陪你一层一层向上看。</p>'+
+  '</div>'+
+  '</div>';
+}
+function answerHTML(){
+  const idx=state.layer, lv=LEVELS[idx];
+  const qs=state.questions[lv.key]||[];
+  const skipped=state.skipped[lv.key];
+  const doneCount=LEVELS.filter(l=> state.skipped[l.key] || state.answers[l.key].some(a=>a && a.trim())).length;
+  return '<div class="stack">'+
+  '<div class="card">'+
+    '<div class="prog-top"><span>'+esc(state.name)+'，第 '+(idx+1)+' 层 / 共 6 层</span><span>已完成 '+doneCount+' 层</span></div>'+
+    '<div class="pbar"><i style="width:'+Math.round((idx+1)/6*100)+'%; background:linear-gradient(90deg,'+lv.color+'cc,'+lv.color+');"></i></div>'+
+    '<p class="hint" style="margin:0 0 12px;">话题：'+esc(state.topic)+'</p>'+
+    errorHTML()+
+    '<div class="level-head"><span class="level-dot" style="background:'+lv.color+'"></span>'+
+      '<div><div class="level-name">'+lv.name+'</div></div></div>'+
+    '<p class="level-desc">'+esc(lv.desc)+'</p>'+
+    '<label class="skip-row"><input type="checkbox" data-action="toggleSkip"'+(skipped?' checked':'')+'> 这一层我还不确定，先跳过</label>'+
+    '<div id="qList" style="'+(skipped?'opacity:.45; pointer-events:none;':'')+'">'+
+      qs.map((q,i)=>'<div class="q-item">'+
+        '<div class="q-text"><span class="q-num" style="background:'+lv.color+'">'+(i+1)+'</span><span>'+esc(q.q)+'</span></div>'+
+        '<textarea rows="2" data-ans="'+lv.key+':'+i+'" placeholder="写下你的回答……"'+(skipped?' disabled':'')+'>'+esc(state.answers[lv.key][i]||'')+'</textarea>'+
+        (q.hint?'<div class="q-hint">例如：'+esc(q.hint)+'</div>':'')+
+      '</div>').join('')+
+    '</div>'+
+    '<div class="q-tools"><button class="btn mini" data-action="regenLevel">🔄 换一批问题</button></div>'+
+    '<div class="step-nav">'+
+      '<button class="btn" data-action="prevLayer">‹ '+(idx===0?'返回话题':'上一步')+'</button>'+
+      (idx<5
+        ? '<button class="btn primary" data-action="nextLayer">下一步 ›</button>'
+        : '<button class="btn green" data-action="finish">✨ 生成洞察报告</button>')+
+    '</div>'+
+    '<div class="autosave-note">回答已自动保存在本地</div>'+
+  '</div>'+
+  '</div>';
+}
+function reportHTML(){
+  const rep=state.report||{};
+  const conflicts=Array.isArray(rep.conflicts)?rep.conflicts:[];
+  const suggestions=Array.isArray(rep.suggestions)?rep.suggestions:[];
+  const bottle=rep.bottleneck||{};
+  const lvStatus=Array.isArray(rep.levels)?rep.levels:[];
+  const order=['spirit','identity','belief','capability','behavior','environment'];
+  const byKey={};
+  lvStatus.forEach(x=>{ if(x && x.key) byKey[x.key]=x; });
+  const lvListHTML=order.map(key=>{
+    const lv=LEVELS.find(l=>l.key===key);
+    const st=byKey[key];
+    if(!st || !STATUS_COLORS[st.status]) return '';
+    const sc=STATUS_COLORS[st.status];
+    return '<div class="insight-item" style="border-left-color:'+sc.fill+'">'+
+      '<div class="insight-name" style="color:'+sc.fill+'">'+lv.name+' · '+sc.label+'</div>'+
+      (st.note?'<div class="insight-text">'+esc(st.note)+'</div>':'')+'</div>';
+  }).join('');
+  return '<div class="stack">'+
+  '<div class="card">'+
+    '<h2 class="page-title">给你的洞察报告</h2>'+
+    '<p class="hint">话题：'+esc(state.topic)+'　·　生成于 '+fmtDate(state.reportTime||Date.now())+'</p>'+
+    errorHTML()+
+    (rep.empathy?'<div class="rep-block"><div class="rep-label">我听到了你</div><div class="rep-text">'+esc(rep.empathy)+'</div></div>':'')+
+    (rep.mirror?'<div class="rep-block"><div class="rep-label">一面镜子</div><div class="rep-text">'+esc(rep.mirror)+'</div></div>':'')+
+    (rep.thread?'<div class="rep-block"><div class="rep-label">串起来看 · 表现的背后是什么</div><div class="rep-text">'+esc(rep.thread)+'</div></div>':'')+
+    (lvStatus.length?'<div class="rep-block"><div class="rep-label">六层状态一览（塔顶是愿景，塔底是环境）</div>'+'<img class="levels-img" src="理解六层次.jpg" alt="理解六层次">'+lvListHTML+'</div>':'')+
+    (rep.summary?'<div class="rep-block"><div class="rep-label">整体图景</div><div class="rep-text">'+esc(rep.summary)+'</div></div>':'')+
+    (bottle.level?'<div class="rep-block"><div class="rep-label">最值得先动的一层</div><div class="bottle-card"><div class="bottle-level">🎯 '+esc(bottle.level)+'</div><div class="bottle-reason">'+esc(bottle.reason||'')+'</div></div></div>':'')+
+    (rep.alignment?'<div class="rep-block"><div class="rep-label">六层次对齐分析</div><div class="rep-text">'+esc(rep.alignment)+'</div></div>':'')+
+    (rep.goalGap?'<div class="rep-block"><div class="rep-label">离目标还有多远</div><div class="rep-text">'+esc(rep.goalGap)+'</div></div>':'')+
+    (conflicts.length?'<div class="rep-block"><div class="rep-label">层次之间的矛盾与卡点</div>'+
+      conflicts.map(c=>'<div class="conflict-item"><div class="conflict-title">· '+esc(c.title||'矛盾点')+'</div><div class="conflict-detail">'+esc(c.detail||'')+'</div></div>').join('')+'</div>':'')+
+    (suggestions.length?'<div class="rep-block"><div class="rep-label">你可以试试</div><ul class="sg-list">'+
+      suggestions.map(s=>'<li>'+esc(s)+'</li>').join('')+'</ul></div>':'')+
+    (rep.goalManagement?'<div class="rep-block"><div class="rep-label">下一步 · 用目标管理落地</div><div class="bw-card">🎯 '+esc(rep.goalManagement)+'</div></div>':'')+
+    (rep.balanceWheel?'<div class="rep-block"><div class="rep-label">下一步 · 衔接到平衡轮</div><div class="bw-card">⚖️ '+esc(rep.balanceWheel)+'</div></div>':'')+
+    '<p class="hint" style="margin:4px 0 8px;">接下来，可以在「目标管理（平衡轮）」里把今天的结论变成具体行动。</p>'+
+    '<button class="btn green" style="width:100%; min-height:50px;" data-action="gotoWheel">🎯 进入目标管理（平衡轮）</button>'+
+  '</div>'+
+  '<div class="card">'+
+    '<h3>问答回顾</h3>'+
+    LEVELS.map(l=>{
+      let body='';
+      if(state.skipped[l.key]) body='<div class="qa-item"><div class="qa-a empty">（本层已标记为「不确定 / 跳过」）</div></div>';
+      else body=(state.questions[l.key]||[]).map((q,i)=>{
+        const a=(state.answers[l.key][i]||'').trim();
+        return '<div class="qa-item"><div class="qa-q">'+esc(q.q)+'</div><div class="qa-a'+(a?'':' empty')+'">'+(a?esc(a):'（未作答）')+'</div></div>';
+      }).join('');
+      return '<div style="margin-bottom:14px;"><span class="level-chip" style="background:'+l.color+'">'+l.name+'</span>'+body+'</div>';
+    }).join('')+
+    '<div class="report-actions">'+
+      '<button class="btn primary" data-action="exportPDF">保存 PDF</button>'+
+      '<button class="btn" data-action="exportImage">保存长图</button>'+
+      '<button class="btn danger" data-action="restart">重新测一次</button>'+
+    '</div>'+
+  '</div>'+
+  '</div>';
+}
+
+/* ================= 导出：长图 / PDF（与平衡轮同一套 canvas 手绘方案） ================= */
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
+}
+function wrapText(ctx, text, maxWidth){
+  const lines=[];
+  String(text==null?'':text).split('\n').forEach(seg=>{
+    let line='';
+    for(const ch of seg){
+      const test=line+ch;
+      if(ctx.measureText(test).width>maxWidth && line){ lines.push(line); line=ch; }
+      else line=test;
+    }
+    if(line) lines.push(line);
+    if(!seg) lines.push('');
+  });
+  return lines.length?lines:[''];
+}
+function drawSectionTitle(ctx, text, x, y, color){
+  ctx.fillStyle=color||'#c96f4a'; ctx.beginPath(); ctx.arc(x+6, y-6, 5, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle='#2d2a26'; ctx.font='700 17px '+FONT; ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+  ctx.fillText(text, x+20, y);
+  return y+24;
+}
+/* 在 ctx 上排版整份报告，返回结束时的高度 y（两遍调用：先量高度再正式画） */
+function drawReport(ctx, W, pad){
+  const rep=state.report||{};
+  const conflicts=Array.isArray(rep.conflicts)?rep.conflicts:[];
+  const suggestions=Array.isArray(rep.suggestions)?rep.suggestions:[];
+  const bottle=rep.bottleneck||{};
+  let y=pad;
+  // 标题行
+  ctx.fillStyle='#2d2a26'; ctx.font='700 26px '+FONT; ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+  ctx.fillText('理解六层次 · 洞察报告', pad, y);
+  ctx.font='14px '+FONT; ctx.fillStyle='#8a8378'; ctx.textAlign='right';
+  ctx.fillText('导出日期：'+fmtDate(Date.now()), W-pad, y);
+  ctx.textAlign='left';
+  y+=30;
+  // 话题
+  ctx.font='600 14px '+FONT; ctx.fillStyle='#b85c3a';
+  ctx.fillText('💡 话题', pad, y); y+=22;
+  ctx.font='14px '+FONT; ctx.fillStyle='#3d382e';
+  wrapText(ctx, state.topic, W-pad*2).forEach(t=>{ ctx.fillText(t, pad, y); y+=20; });
+  y+=16;
+  // 我听到了你（共情复述）
+  if(rep.empathy){
+    y=drawSectionTitle(ctx, '我听到了你', pad, y);
+    ctx.font='14px '+FONT; ctx.fillStyle='#3d382e';
+    wrapText(ctx, rep.empathy, W-pad*2-20).forEach(t=>{ ctx.fillText(t, pad+20, y); y+=21; });
+    y+=16;
+  }
+  // 一面镜子（六层楼意象的整体观察）
+  if(rep.mirror){
+    y=drawSectionTitle(ctx, '一面镜子', pad, y);
+    ctx.font='14px '+FONT; ctx.fillStyle='#3d382e';
+    wrapText(ctx, rep.mirror, W-pad*2-20).forEach(t=>{ ctx.fillText(t, pad+20, y); y+=21; });
+    y+=16;
+  }
+  // 串起来看（下三层表现 ← 上三层根子）
+  if(rep.thread){
+    y=drawSectionTitle(ctx, '串起来看 · 表现的背后是什么', pad, y);
+    ctx.font='14px '+FONT; ctx.fillStyle='#3d382e';
+    wrapText(ctx, rep.thread, W-pad*2-20).forEach(t=>{ ctx.fillText(t, pad+20, y); y+=21; });
+    y+=16;
+  }
+  // 六层状态一览（塔顶精神/愿景 → 塔底环境）
+  const lvStatus=Array.isArray(rep.levels)?rep.levels:[];
+  if(lvStatus.length){
+    const byKey={};
+    lvStatus.forEach(x=>{ if(x && x.key) byKey[x.key]=x; });
+    y=drawSectionTitle(ctx, '六层状态一览', pad, y);
+    ['spirit','identity','belief','capability','behavior','environment'].forEach(key=>{
+      const lv=LEVELS.find(l=>l.key===key);
+      const st=byKey[key]||{};
+      const sc=STATUS_COLORS[st.status]||{fill:'#c9c2b4', label:'未评估'};
+      ctx.fillStyle=sc.fill; roundRect(ctx, pad+20, y-13, 12, 12, 3); ctx.fill();
+      ctx.font='700 13.5px '+FONT; ctx.fillStyle='#2d2a26';
+      const label=lv.name+' · '+sc.label;
+      ctx.fillText(label, pad+40, y);
+      if(st.note){
+        ctx.font='13px '+FONT; ctx.fillStyle='#3d382e';
+        const noteX=pad+40+ctx.measureText(label).width+10;
+        const first=wrapText(ctx, st.note, W-pad-noteX-20);
+        if(first.length===1){ ctx.fillText(first[0], noteX, y); }
+        else{
+          y+=19;
+          wrapText(ctx, st.note, W-pad*2-56).forEach(t=>{ ctx.fillText(t, pad+40, y); y+=19; });
+          y-=19;
+        }
+      }
+      y+=24;
+    });
+    y+=12;
+  }
+  // 总体洞察（整体图景）
+  if(rep.summary){
+    y=drawSectionTitle(ctx, '整体图景', pad, y);
+    ctx.font='14px '+FONT; ctx.fillStyle='#3d382e';
+    wrapText(ctx, rep.summary, W-pad*2-20).forEach(t=>{ ctx.fillText(t, pad+20, y); y+=21; });
+    y+=16;
+  }
+  // 关键卡点（高亮卡片）
+  if(bottle.level){
+    y=drawSectionTitle(ctx, '最值得先动的一层', pad, y);
+    ctx.font='700 15px '+FONT;
+    const title='🎯 '+bottle.level;
+    const reasonLines=wrapText(ctx, bottle.reason||'', W-pad*2-52);
+    const boxH=34+reasonLines.length*20+18;
+    ctx.fillStyle='#fdf3ee'; roundRect(ctx, pad, y-8, W-pad*2, boxH, 12); ctx.fill();
+    ctx.strokeStyle='#f0d9cc'; ctx.lineWidth=1; roundRect(ctx, pad, y-8, W-pad*2, boxH, 12); ctx.stroke();
+    ctx.fillStyle='#b85c3a'; ctx.fillText(title, pad+16, y+16);
+    ctx.font='13px '+FONT; ctx.fillStyle='#3d382e';
+    reasonLines.forEach((t,i)=>{ ctx.fillText(t, pad+16, y+40+i*20); });
+    y+=boxH+16;
+  }
+  // 六层次对齐分析
+  if(rep.alignment){
+    y=drawSectionTitle(ctx, '六层次对齐分析', pad, y);
+    ctx.font='14px '+FONT; ctx.fillStyle='#3d382e';
+    wrapText(ctx, rep.alignment, W-pad*2-20).forEach(t=>{ ctx.fillText(t, pad+20, y); y+=21; });
+    y+=16;
+  }
+  // 离目标还有多远
+  if(rep.goalGap){
+    y=drawSectionTitle(ctx, '离目标还有多远', pad, y);
+    ctx.font='14px '+FONT; ctx.fillStyle='#3d382e';
+    wrapText(ctx, rep.goalGap, W-pad*2-20).forEach(t=>{ ctx.fillText(t, pad+20, y); y+=21; });
+    y+=16;
+  }
+  // 矛盾与卡点（兼容旧报告）
+  if(conflicts.length){
+    y=drawSectionTitle(ctx, '层次之间的矛盾与卡点', pad, y);
+    conflicts.forEach(c=>{
+      ctx.font='700 14px '+FONT; ctx.fillStyle='#2d2a26';
+      wrapText(ctx, '· '+(c.title||'矛盾点'), W-pad*2-20).forEach(t=>{ ctx.fillText(t, pad+20, y); y+=21; });
+      ctx.font='13px '+FONT; ctx.fillStyle='#3d382e';
+      wrapText(ctx, c.detail||'', W-pad*2-36).forEach(t=>{ ctx.fillText(t, pad+32, y); y+=20; });
+      y+=8;
+    });
+    y+=8;
+  }
+  // 问答回顾
+  y=drawSectionTitle(ctx, '问答回顾', pad, y);
+  LEVELS.forEach(l=>{
+    // 层标题
+    ctx.font='700 13px '+FONT;
+    const chipW=ctx.measureText(l.name).width+28;
+    ctx.fillStyle=l.color; roundRect(ctx, pad, y-16, chipW, 24, 12); ctx.fill();
+    ctx.fillStyle='#ffffff';
+    ctx.fillText(l.name, pad+14, y);
+    y+=18;
+    // 问答
+    if(state.skipped[l.key]){
+      ctx.font='13px '+FONT; ctx.fillStyle='#b0a99c';
+      ctx.fillText('（本层已标记为「不确定 / 跳过」）', pad+8, y); y+=22;
+    }else{
+      (state.questions[l.key]||[]).forEach((q,i)=>{
+        const a=(state.answers[l.key][i]||'').trim();
+        ctx.font='600 13px '+FONT; ctx.fillStyle='#5d5442';
+        wrapText(ctx, '问：'+q.q, W-pad*2-24).forEach(t=>{ ctx.fillText(t, pad+12, y); y+=19; });
+        ctx.font='13px '+FONT; ctx.fillStyle=a?'#3d382e':'#b0a99c';
+        wrapText(ctx, '答：'+(a||'（未作答）'), W-pad*2-36).forEach(t=>{ ctx.fillText(t, pad+24, y); y+=19; });
+        y+=4;
+      });
+    }
+    y+=14;
+  });
+  // 建议方向
+  if(suggestions.length){
+    y=drawSectionTitle(ctx, '你可以试试', pad, y);
+    suggestions.forEach((s,i)=>{
+      ctx.font='700 13px '+FONT; ctx.fillStyle='#3f9d63';
+      ctx.fillText((i+1)+'.', pad+20, y);
+      ctx.font='13.5px '+FONT; ctx.fillStyle='#3d382e';
+      const ls=wrapText(ctx, s, W-pad*2-52);
+      ls.forEach((t,li)=>{ ctx.fillText(t, pad+42, y+li*20); });
+      y+=ls.length*20+6;
+    });
+    y+=10;
+  }
+  // 下一步 · 用目标管理落地
+  const gmText=rep.goalManagement||rep.balanceWheel;
+  if(gmText){
+    y=drawSectionTitle(ctx, '下一步 · 用目标管理落地', pad, y, '#3f9d63');
+    ctx.font='13px '+FONT;
+    const bl=wrapText(ctx, gmText, W-pad*2-52);
+    const boxH=bl.length*20+24;
+    ctx.fillStyle='#eef7f1'; roundRect(ctx, pad, y-8, W-pad*2, boxH, 12); ctx.fill();
+    ctx.strokeStyle='#cfe3d5'; ctx.lineWidth=1; roundRect(ctx, pad, y-8, W-pad*2, boxH, 12); ctx.stroke();
+    ctx.fillStyle='#3d382e';
+    bl.forEach((t,i)=>{ ctx.fillText(t, pad+16, y+8+i*20); });
+    y+=boxH+18;
+  }
+  // 品牌行
+  y+=14;
+  ctx.font='12px '+FONT; ctx.fillStyle='#8a8378'; ctx.textAlign='center';
+  ctx.fillText('飞昂叩启教练学院 · 理解六层次　　6d.3mcoach.cn', W/2, y);
+  ctx.textAlign='left';
+  return y+pad;
+}
+function buildLongCanvas(){
+  const scale=2, W=1000, pad=48;
+  // 第一遍：用草稿 ctx 测量高度
+  const m=document.createElement('canvas'); m.width=W; m.height=10;
+  const mctx=m.getContext('2d');
+  const H=Math.max(drawReport(mctx, W, pad), 800);
+  const c=document.createElement('canvas');
+  c.width=W*scale; c.height=H*scale;
+  const ctx=c.getContext('2d');
+  ctx.setTransform(scale,0,0,scale,0,0);
+  ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,W,H);
+  drawReport(ctx, W, pad);
+  return c;
+}
+async function saveCanvasAsImage(c){
+  const name='理解六层次-'+fmtStamp(Date.now())+'.png';
+  const blob=await new Promise(r=>c.toBlob(r,'image/png'));
+  const file=new File([blob],name,{type:'image/png'});
+  if(navigator.canShare && navigator.canShare({files:[file]})){
+    try{ await navigator.share({files:[file], title:'理解六层次'}); toast('已调起系统分享'); return; }
+    catch(e){ if(e.name==='AbortError') return; }
+  }
+  const a=document.createElement('a');
+  a.download=name; a.href=URL.createObjectURL(blob);
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  toast('长图已开始下载，请到相册或文件中查看');
+}
+async function exportLongImage(){
+  toast('正在生成长图…');
+  await new Promise(r=>setTimeout(r,50));
+  const c=buildLongCanvas();
+  await saveCanvasAsImage(c);
+}
+async function exportPDF(){
+  if(typeof jspdf==='undefined' || !window.jspdf){
+    toast('PDF 组件加载失败，请检查网络后重试'); return;
+  }
+  toast('正在生成 PDF…');
+  await new Promise(r=>setTimeout(r,50));
+  const c=buildLongCanvas();
+  const imgData=c.toDataURL('image/png');
+  const { jsPDF }=window.jspdf;
+  const pdf=new jsPDF({orientation:'p', unit:'mm', format:'a4'});
+  const pageW=210, pageH=297, margin=12;
+  const imgW=pageW-margin*2;
+  const imgH=c.height*imgW/c.width;
+  let heightLeft=imgH, position=margin;
+  pdf.addImage(imgData,'PNG',margin,position,imgW,imgH);
+  heightLeft-=(pageH-margin*2);
+  while(heightLeft>0){
+    pdf.addPage();
+    position=margin-(imgH-heightLeft);
+    pdf.addImage(imgData,'PNG',margin,position,imgW,imgH);
+    heightLeft-=(pageH-margin*2);
+  }
+  pdf.save('理解六层次-'+fmtStamp(Date.now())+'.pdf');
+  toast('PDF 已开始下载');
+}
+
+/* ================= 设置弹窗 ================= */
+function providerNoteHTML(p){
+  if(!p.note) return '';
+  return esc(p.note)+(p.free?' <b>（官方免费模型，适合免费开放给访客）</b>':'');
+}
+function syncProviderUI(){
+  const provider=document.getElementById('cfgProvider').value;
+  const p=PROVIDERS[provider]||PROVIDERS[DEFAULT_PROVIDER];
+  const ep=document.getElementById('cfgEndpoint');
+  const note=document.getElementById('cfgProviderNote');
+  if(provider!=='custom'){ ep.value=p.endpoint; ep.readOnly=true; }
+  else{ ep.readOnly=false; }
+  note.innerHTML=providerNoteHTML(p);
+  note.classList.toggle('free', !!p.free);
+}
+function currentCfgLine(){
+  const cfg=getConfig();
+  const p=PROVIDERS[cfg.provider]||PROVIDERS[DEFAULT_PROVIDER];
+  return '当前：'+p.name+' · '+(cfg.model||'（未设模型）');
+}
+function openSettings(){
+  const cfg=getConfig();
+  document.getElementById('cfgProvider').value=cfg.provider;
+  document.getElementById('cfgKey').value=cfg.apiKey;
+  document.getElementById('cfgEndpoint').value=cfg.endpoint;
+  document.getElementById('cfgModel').value=cfg.model;
+  document.getElementById('cfgCurrent').textContent=currentCfgLine();
+  const r=document.getElementById('cfgTestResult');
+  r.textContent=''; r.className='test-result';
+  syncProviderUI();
+  document.getElementById('settingsMask').classList.add('show');
+}
+function closeSettings(){ document.getElementById('settingsMask').classList.remove('show'); }
+function readSettingsForm(){
+  const provider=document.getElementById('cfgProvider').value;
+  const p=PROVIDERS[provider]||PROVIDERS[DEFAULT_PROVIDER];
+  return {
+    provider,
+    apiKey:document.getElementById('cfgKey').value.trim(),
+    endpoint:(provider==='custom' ? document.getElementById('cfgEndpoint').value.trim() : p.endpoint),
+    model:document.getElementById('cfgModel').value.trim()||p.model
+  };
+}
+
+/* ================= 事件绑定 ================= */
+document.getElementById('btnSettings').addEventListener('click', openSettings);
+document.getElementById('cfgCancel').addEventListener('click', closeSettings);
+document.getElementById('settingsMask').addEventListener('click', e=>{ if(e.target.id==='settingsMask') closeSettings(); });
+document.getElementById('cfgProvider').addEventListener('change', ()=>{
+  const provider=document.getElementById('cfgProvider').value;
+  const p=PROVIDERS[provider]||PROVIDERS[DEFAULT_PROVIDER];
+  /* 切换预设时自动填入 endpoint 和默认模型（模型仍可手改） */
+  document.getElementById('cfgModel').value=p.model;
+  const r=document.getElementById('cfgTestResult');
+  r.textContent=''; r.className='test-result';
+  syncProviderUI();
+});
+document.getElementById('cfgTest').addEventListener('click', async ()=>{
+  const btn=document.getElementById('cfgTest');
+  const r=document.getElementById('cfgTestResult');
+  const cfg=readSettingsForm();
+  btn.disabled=true; r.textContent='测试中…'; r.className='test-result';
+  try{
+    await testConnection(cfg);
+    r.textContent='连接成功 ✓（'+cfg.model+'）';
+    r.className='test-result ok';
+  }catch(e){
+    r.textContent='连接失败：'+e.message;
+    r.className='test-result err';
+  }finally{
+    btn.disabled=false;
+  }
+});
+document.getElementById('cfgSave').addEventListener('click', ()=>{
+  const f=readSettingsForm();
+  saveConfig(f.provider, f.apiKey, f.endpoint, f.model);
+  closeSettings();
+  toast(f.apiKey?'设置已保存':'已保存（API Key 为空，生成前请填写）');
+});
+document.getElementById('app').addEventListener('click', e=>{
+  const el=e.target.closest('[data-action]');
+  if(!el) return;
+  const act=el.dataset.action;
+  clearError();
+  if(act==='fillTopic'){
+    state.topic=el.dataset.topic||'';
+    const ta=document.getElementById('topicInput');
+    if(ta) ta.value=state.topic;
+    save();
+  }
+  else if(act==='genQuestions'){
+    const na=document.getElementById('nameInput');
+    if(na) state.name=na.value.trim();
+    const ta=document.getElementById('topicInput');
+    if(ta) state.topic=ta.value;
+    save();
+    if(!state.name){ toast('先告诉我怎么称呼你吧'); if(na) na.focus(); return; }
+    genAllQuestions();
+  }
+  else if(act==='startExplore'){ state.view='topic'; save(); render(); window.scrollTo(0,0); }
+  else if(act==='resumeExplore'){
+    state.view=state.report?'report':(state.questions[LEVELS[0].key]?'answer':'topic');
+    save(); render(); window.scrollTo(0,0);
+  }
+  else if(act==='resumeAnswer'){ state.view='answer'; save(); render(); }
+  else if(act==='prevLayer'){
+    if(state.layer===0){ state.view='topic'; }
+    else state.layer--;
+    save(); render(); window.scrollTo(0,0);
+  }
+  else if(act==='nextLayer'){
+    if(state.layer<5){ state.layer++; save(); render(); window.scrollTo(0,0); }
+  }
+  else if(act==='finish'){ genReport(); }
+  else if(act==='regenLevel'){ genLevelQuestions(state.layer); }
+  else if(act==='retryError'){
+    const er=lastError; lastError=null;
+    if(!er){ render(); return; }
+    if(er.action==='genAllQuestions') genAllQuestions();
+    else if(er.action==='genLevelQuestions') genLevelQuestions(er.arg);
+    else if(er.action==='genReport') genReport();
+    else render();
+  }
+  else if(act==='dismissError'){ lastError=null; render(); }
+  else if(act==='gotoWheel'){
+    const rep=state.report||{};
+    const bottle=rep.bottleneck||{};
+    const sugg=Array.isArray(rep.suggestions)?rep.suggestions:[];
+    let text='【理解六层次 · 探索结论】\n称呼：'+state.name+'\n话题：'+state.topic+'\n';
+    if(bottle.level) text+='关键卡点：'+bottle.level+' —— '+(bottle.reason||'')+'\n';
+    if(sugg.length) text+='建议方向：\n'+sugg.map((s,i)=>(i+1)+'. '+s).join('\n');
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).catch(()=>{});
+    }
+    window.open('./平衡轮-提升版.html?new='+encodeURIComponent(state.name||'我')+'&goal='+encodeURIComponent(state.topic||''),'_blank');
+    toast('已打开目标管理，你的探索结论已复制，可粘贴使用');
+  }
+  else if(act==='exportPDF'){ exportPDF(); }
+  else if(act==='exportImage'){ exportLongImage(); }
+  else if(act==='restart'){
+    if(!confirm('确定重新测一次吗？当前话题的回答与报告将被清空。')) return;
+    localStorage.removeItem(LS_STATE);
+    state=defaultState();
+    state.view='topic'; /* 重新测一次不必再看欢迎信 */
+    save(); render(); window.scrollTo(0,0);
+    toast('已重置，可以开始新的探索');
+  }
+});
+/* 回答自动保存（localStorage，刷新不丢） */
+document.getElementById('app').addEventListener('input', e=>{
+  const t=e.target;
+  if(t.matches('[data-ans]')){
+    const parts=t.dataset.ans.split(':');
+    const key=parts[0], idx=+parts[1];
+    if(!Array.isArray(state.answers[key])) state.answers[key]=[];
+    state.answers[key][idx]=t.value;
+    save();
+  }else if(t.id==='topicInput'){
+    state.topic=t.value; save();
+  }else if(t.id==='nameInput'){
+    state.name=t.value.trim(); save();
+  }
+});
+document.getElementById('app').addEventListener('change', e=>{
+  const t=e.target;
+  if(t.dataset && t.dataset.action==='toggleSkip'){
+    const lv=LEVELS[state.layer];
+    state.skipped[lv.key]=t.checked;
+    save(); render();
+  }
+});
+
+/* ================= 初始化 ================= */
+(function init(){
+  loadState();
+  if(state.layer<0 || state.layer>5) state.layer=0;
+  render();
+})();
+</script>
+</body>
+</html>

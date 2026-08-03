@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>平衡轮 · Wheel of Balance</title>
+<style>
+  :root {
+    --bg: #f6f4ef;
+    --panel: #ffffff;
+    --ink: #2b2b2b;
+    --muted: #8a8577;
+    --accent: #c96f4a;
+    --accent-soft: rgba(201, 111, 74, .14);
+    --line: #e4dfd2;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px 48px;
+  }
+  header { text-align: center; margin-bottom: 14px; }
+  header h1 { font-size: 26px; letter-spacing: 2px; font-weight: 600; }
+  header p { color: var(--muted); font-size: 13px; margin-top: 6px; }
+  main {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+    max-width: 1100px;
+  }
+  .wheel-card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 18px;
+    box-shadow: 0 2px 14px rgba(60, 50, 30, .06);
+  }
+  canvas { display: block; touch-action: none; cursor: default; }
+  .panel {
+    width: 300px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 18px;
+    box-shadow: 0 2px 14px rgba(60, 50, 30, .06);
+  }
+  .panel h2 { font-size: 15px; margin-bottom: 12px; font-weight: 600; }
+  .dim-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 0;
+    border-bottom: 1px dashed var(--line);
+  }
+  .dim-row:last-of-type { border-bottom: none; }
+  .dim-row input[type="text"] {
+    flex: 1;
+    min-width: 0;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    padding: 5px 8px;
+    font-size: 14px;
+    background: transparent;
+    color: var(--ink);
+  }
+  .dim-row input[type="text"]:hover, .dim-row input[type="text"]:focus {
+    border-color: var(--line);
+    background: #fbfaf6;
+    outline: none;
+  }
+  .score {
+    width: 34px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    font-size: 14px;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .del {
+    border: none;
+    background: none;
+    color: #c5bfae;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 6px;
+    line-height: 1;
+  }
+  .del:hover { color: #b0413e; background: #f7ecec; }
+  .del:disabled { opacity: .3; cursor: not-allowed; }
+  .actions { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+  button.btn {
+    border: 1px solid var(--line);
+    background: #fbfaf6;
+    border-radius: 10px;
+    padding: 9px 12px;
+    font-size: 14px;
+    cursor: pointer;
+    color: var(--ink);
+  }
+  button.btn:hover { background: #f1eee4; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  button.primary:hover { background: #b85f3c; }
+  .hint { font-size: 12px; color: var(--muted); margin-top: 12px; line-height: 1.7; }
+  @media (max-width: 760px) { .panel { width: 100%; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>平 衡 轮</h1>
+  <p>拖动轮子上的圆点调整分数（0–10），维度名称可直接点击修改</p>
+</header>
+<main>
+  <div class="wheel-card"><canvas id="wheel"></canvas></div>
+  <div class="panel">
+    <h2>维度</h2>
+    <div id="dimList"></div>
+    <div class="actions">
+      <button class="btn" id="addDim">＋ 添加维度</button>
+      <button class="btn primary" id="exportPng">导出图片</button>
+      <button class="btn" id="reset">重置分数</button>
+    </div>
+    <p class="hint">分数会自动保存在本浏览器中。<br>导出的图片为 PNG，可直接插入 PPT 或打印。</p>
+  </div>
+</main>
+
+<script>
+(function () {
+  "use strict";
+
+  var DEFAULT_DIMS = ["健康", "事业", "家庭", "财务", "人际", "成长", "娱乐", "环境"];
+  var MAX_DIMS = 12, MIN_DIMS = 3;
+  var storeKey = "balance-wheel-v1";
+
+  var dims = load();
+
+  function load() {
+    try {
+      var raw = localStorage.getItem(storeKey);
+      if (raw) {
+        var d = JSON.parse(raw);
+        if (Array.isArray(d) && d.length >= MIN_DIMS) return d;
+      }
+    } catch (e) {}
+    return DEFAULT_DIMS.map(function (n) { return { name: n, score: 5 }; });
+  }
+  function save() {
+    try { localStorage.setItem(storeKey, JSON.stringify(dims)); } catch (e) {}
+  }
+
+  var canvas = document.getElementById("wheel");
+  var ctx = canvas.getContext("2d");
+  var CSS_SIZE = Math.min(640, window.innerWidth - 60);
+  var dpr = window.devicePixelRatio || 1;
+  canvas.style.width = CSS_SIZE + "px";
+  canvas.style.height = CSS_SIZE + "px";
+  canvas.width = CSS_SIZE * dpr;
+  canvas.height = CSS_SIZE * dpr;
+  ctx.scale(dpr, dpr);
+
+  var CX = CSS_SIZE / 2, CY = CSS_SIZE / 2;
+  var R = CSS_SIZE / 2 - 74;   // outer ring radius, leaving room for labels
+  var LEVELS = 10;
+
+  var dragging = -1;
+
+  function angle(i) { return -Math.PI / 2 + i * 2 * Math.PI / dims.length; }
+  function pt(i, score) {
+    var r = R * score / LEVELS, a = angle(i);
+    return { x: CX + r * Math.cos(a), y: CY + r * Math.sin(a) };
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, CSS_SIZE, CSS_SIZE);
+
+    // rings (polygon web)
+    for (var lv = 1; lv <= LEVELS; lv++) {
+      ctx.beginPath();
+      for (var i = 0; i < dims.length; i++) {
+        var p = pt(i, lv);
+        if (i === 0) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y);
+      }
+      ctx.closePath();
+      ctx.strokeStyle = lv === LEVELS ? "#c9c2ae" : "#e7e2d4";
+      ctx.lineWidth = lv === LEVELS ? 1.4 : 1;
+      ctx.stroke();
+    }
+
+    // spokes
+    for (var s = 0; s < dims.length; s++) {
+      var pe = pt(s, LEVELS);
+      ctx.beginPath();
+      ctx.moveTo(CX, CY);
+      ctx.lineTo(pe.x, pe.y);
+      ctx.strokeStyle = "#e7e2d4";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    // score polygon
+    ctx.beginPath();
+    for (var j = 0; j < dims.length; j++) {
+      var ps = pt(j, dims[j].score);
+      if (j === 0) ctx.moveTo(ps.x, ps.y); else ctx.lineTo(ps.x, ps.y);
+    }
+    ctx.closePath();
+    ctx.fillStyle = "rgba(201,111,74,.18)";
+    ctx.fill();
+    ctx.strokeStyle = "#c96f4a";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // labels + handles
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    for (var k = 0; k < dims.length; k++) {
+      var a = angle(k);
+      var lx = CX + (R + 40) * Math.cos(a);
+      var ly = CY + (R + 40) * Math.sin(a);
+      ctx.font = "14px -apple-system, 'PingFang SC', 'Hiragino Sans GB', sans-serif";
+      ctx.fillStyle = "#4a463c";
+      ctx.fillText(dims[k].name, lx, ly);
+
+      var pp = pt(k, dims[k].score);
+      ctx.beginPath();
+      ctx.arc(pp.x, pp.y, 9, 0, Math.PI * 2);
+      ctx.fillStyle = "#c96f4a";
+      ctx.fill();
+      ctx.lineWidth = 2.5;
+      ctx.strokeStyle = "#fff";
+      ctx.stroke();
+
+      // score badge next to handle
+      var bx = pp.x + 16 * Math.cos(a), by = pp.y + 16 * Math.sin(a) - 2;
+      ctx.font = "bold 12px -apple-system, 'PingFang SC', sans-serif";
+      ctx.fillStyle = "#c96f4a";
+      ctx.fillText(String(dims[k].score), bx, by);
+    }
+  }
+
+  function pos(evt) {
+    var rect = canvas.getBoundingClientRect();
+    var t = evt.touches && evt.touches.length ? evt.touches[0] : evt;
+    return { x: t.clientX - rect.left, y: t.clientY - rect.top };
+  }
+
+  function hit(p) {
+    for (var i = 0; i < dims.length; i++) {
+      var h = pt(i, dims[i].score);
+      if (Math.hypot(p.x - h.x, p.y - h.y) < 20) return i;
+    }
+    return -1;
+  }
+
+  function applyDrag(p) {
+    if (dragging < 0) return;
+    // project pointer onto the spoke of the dragged dimension
+    var a = angle(dragging);
+    var dx = p.x - CX, dy = p.y - CY;
+    var proj = dx * Math.cos(a) + dy * Math.sin(a);
+    var score = Math.round(proj / R * LEVELS);
+    dims[dragging].score = Math.max(0, Math.min(LEVELS, score));
+    renderList();
+    draw();
+    save();
+  }
+
+  function onDown(evt) {
+    var p = pos(evt);
+    var i = hit(p);
+    if (i >= 0) {
+      dragging = i;
+      canvas.style.cursor = "grabbing";
+      evt.preventDefault();
+    }
+  }
+  function onMove(evt) {
+    var p = pos(evt);
+    if (dragging >= 0) {
+      applyDrag(p);
+      evt.preventDefault();
+    } else {
+      canvas.style.cursor = hit(p) >= 0 ? "grab" : "default";
+    }
+  }
+  function onUp() {
+    dragging = -1;
+    canvas.style.cursor = "default";
+  }
+
+  canvas.addEventListener("mousedown", onDown);
+  window.addEventListener("mousemove", onMove);
+  window.addEventListener("mouseup", onUp);
+  canvas.addEventListener("touchstart", onDown, { passive: false });
+  canvas.addEventListener("touchmove", onMove, { passive: false });
+  canvas.addEventListener("touchend", onUp);
+
+  // ---------- side panel ----------
+  var listEl = document.getElementById("dimList");
+
+  function renderList() {
+    listEl.innerHTML = "";
+    dims.forEach(function (d, i) {
+      var row = document.createElement("div");
+      row.className = "dim-row";
+
+      var input = document.createElement("input");
+      input.type = "text";
+      input.value = d.name;
+      input.maxLength = 8;
+      input.addEventListener("input", function () {
+        d.name = input.value.trim() || "维度" + (i + 1);
+        draw();
+        save();
+      });
+
+      var score = document.createElement("span");
+      score.className = "score";
+      score.textContent = d.score;
+
+      var del = document.createElement("button");
+      del.className = "del";
+      del.textContent = "×";
+      del.title = "删除该维度";
+      del.disabled = dims.length <= MIN_DIMS;
+      del.addEventListener("click", function () {
+        if (dims.length <= MIN_DIMS) return;
+        dims.splice(i, 1);
+        renderList();
+        draw();
+        save();
+      });
+
+      row.appendChild(input);
+      row.appendChild(score);
+      row.appendChild(del);
+      listEl.appendChild(row);
+    });
+  }
+
+  document.getElementById("addDim").addEventListener("click", function () {
+    if (dims.length >= MAX_DIMS) { alert("最多 " + MAX_DIMS + " 个维度"); return; }
+    dims.push({ name: "新维度", score: 5 });
+    renderList();
+    draw();
+    save();
+  });
+
+  document.getElementById("reset").addEventListener("click", function () {
+    dims.forEach(function (d) { d.score = 5; });
+    renderList();
+    draw();
+    save();
+  });
+
+  document.getElementById("exportPng").addEventListener("click", function () {
+    // render wheel + header onto an offscreen canvas with margins
+    var pad = 50, headH = 84;
+    var out = document.createElement("canvas");
+    out.width = CSS_SIZE + pad * 2;
+    out.height = CSS_SIZE + pad * 2 + headH;
+    var c2 = out.getContext("2d");
+    c2.fillStyle = "#ffffff";
+    c2.fillRect(0, 0, out.width, out.height);
+    c2.fillStyle = "#2b2b2b";
+    c2.textAlign = "center";
+    c2.font = "600 26px -apple-system, 'PingFang SC', 'Hiragino Sans GB', sans-serif";
+    c2.fillText("平 衡 轮", out.width / 2, pad - 6);
+    var now = new Date();
+    c2.font = "13px -apple-system, 'PingFang SC', sans-serif";
+    c2.fillStyle = "#8a8577";
+    c2.fillText(now.getFullYear() + " 年 " + (now.getMonth() + 1) + " 月 " + now.getDate() + " 日", out.width / 2, pad + 20);
+    c2.drawImage(canvas, pad, pad + headH, CSS_SIZE, CSS_SIZE);
+    var link = document.createElement("a");
+    link.download = "平衡轮-" + now.toISOString().slice(0, 10) + ".png";
+    link.href = out.toDataURL("image/png");
+    link.click();
+  });
+
+  renderList();
+  draw();
+})();
+</script>
+</body>
+</html>
