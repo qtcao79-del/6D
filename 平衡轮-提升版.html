@@ -1472,16 +1472,41 @@ async function exportPDF(){
   loadStore();
   state=activeMember().state;
   const params=new URLSearchParams(location.search);
+  const forceFresh=params.get('fresh')==='1';
+  if(forceFresh){
+    try{ localStorage.removeItem(LS_KEY); localStorage.removeItem(LS_KEY_V1); }catch(e){}
+    const freshMember=newMember('我');
+    store={active:freshMember.id,members:[freshMember]};
+    state=freshMember.state;
+  }
   if(params.get('demo')==='1') seedDemo();
-  /* 从「理解六层次」跳转进来：以对方名字新建一个空白成员（不动已有成员数据），话题预填为目标 */
+  /* 从「理解六层次」跳转进来：新建成员，接收个性化维度与30天实践 */
   const newName=(params.get('new')||'').trim();
   if(newName){
     const m=newMember(newName.slice(0,20));
     const g=(params.get('goal')||'').trim();
     if(g) m.state.goal.goal=g.slice(0,200);
-    store.members.push(m); store.active=m.id; state=m.state;
+    const requestedStep=Number(params.get('step'));
+    if(Number.isInteger(requestedStep) && requestedStep>=0 && requestedStep<=5) m.state.step=requestedStep;
+    let sixd=null;
+    try{ sixd=JSON.parse(params.get('sixd')||'null'); }catch(e){}
+    if(sixd && Array.isArray(sixd.dimensions)){
+      const names=sixd.dimensions.slice(0,8).map(x=>String(x||'').trim().slice(0,8));
+      while(names.length<8) names.push('');
+      m.state.dims=names.map((name,i)=>({id:'sixd-dim-'+(i+1)+'-'+Date.now().toString(36),name,current:5,selected:false,target:null}));
+      const first=m.state.dims.find(d=>d.name);
+      const p=sixd.practice||{};
+      if(first && (p.action||p.hypothesis)){
+        first.selected=true; first.target=7;
+        m.state.plans[first.id]={specific:String(p.action||''),measurable:String(p.evidence||''),achievable:String(p.support||''),relevant:String(p.hypothesis||''),deadline:String(p.deadline||''),owner:m.name,tasks:[]};
+      }
+      m.state.sixdReflection=sixd.reflections||{};
+    }
+    if(forceFresh) store={active:m.id,members:[m]};
+    else { store.members.push(m); store.active=m.id; }
+    state=m.state;
     try{ history.replaceState(null,'',location.pathname+location.hash); }catch(e){}
-    setTimeout(()=>toast('已为「'+m.name+'」新建一个空白平衡轮，你的目标已预填'),300);
+    setTimeout(()=>toast(sixd?'已带入「'+m.name+'」的个性化维度与30天实践':'已为「'+m.name+'」新建平衡轮，你的目标已预填'),300);
   }
   const applyHash=()=>{ const m=location.hash.match(/step=([0-5])/); if(m){ state.step=+m[1]; render(false); } };
   applyHash();
